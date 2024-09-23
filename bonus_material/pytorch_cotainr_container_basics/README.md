@@ -8,8 +8,6 @@ This is a short introduction to building a PyTorch container with cotainr and ru
 > - An updated installation of the `cotainr` module that sets `--system=lumi-g` to use the LUMI ROCm base image (/appl/local/`containers/sif-images/lumi-rocm-rocm-6.0.3.sif`)
 > - The new `singularity-userfilesystems` module that bind mounts user file system paths, i.e. `/project`, `/scratch`, and `/flash`.
 > - The new `singularity-CPEbits` module that bind mounts the parts of the Cray Programming Environment from the host that are missing in the official LUMI container images due to license restrictions imposed by HPE.
->
-> After the AI workshop and the LUMI maintenance break in August/September, these modules will hopefully be available in the central LUMI stack.
 
 ## 1. Specify your conda/pip environment
 
@@ -30,10 +28,10 @@ cotainr build minimal_pytorch.sif --system=lumi-g --conda-env=minimal_pytorch.ym
 If you need to change something in the conda environment, update the content of `minimal_pytorch.yml` and rebuild the container. To avoid putting stress on the login-nodes, you may want to consider running cotainr non-interactively on a compute node instead of the login nodes, e.g.
 
 ```bash
-srun --output=cotainr.out --error=cotainr.err --account=project_465001063 --time=00:30:00 --mem=64G --cpus-per-task=32 --partition=debug cotainr build minimal_pytorch.sif --system=lumi-g --conda-env=minimal_pytorch.yml --accept-licenses
+srun --output=cotainr.out --error=cotainr.err --account=project_46XXXXXXX --time=00:30:00 --mem=64G --cpus-per-task=32 --partition=debug cotainr build minimal_pytorch.sif --system=lumi-g --conda-env=minimal_pytorch.yml --accept-licenses
 ```
 
-More details about building conda/pip environment containers using cotainr may be found in the [cotainr documentation](https://cotainr.readthedocs.io/en/latest/user_guide/conda_env.html) and the [LUMI Docs cotainr documentation](https://docs.lumi-supercomputer.eu/software/containers/singularity/#building-containers-using-the-cotainr-tool).
+Where 46XXXXXXX is replaced by your project number. More details about building conda/pip environment containers using cotainr may be found in the [cotainr documentation](https://cotainr.readthedocs.io/en/latest/user_guide/conda_env.html) and the [LUMI Docs cotainr documentation](https://docs.lumi-supercomputer.eu/software/containers/singularity/#building-containers-using-the-cotainr-tool).
 
 > [!NOTE]
 > Currently, cotainr only supports conda environments as a way to specify software to install when building a container using cotainr. While most AI related software can be installed via conda/pip there may be some packages that cannot. To install such packages in the container, the container must be built using other tools than cotainr. On LUMI, SingularityCE + proot may be used to build a container from a Singularity definition file. An example of such a SingularityCE + proot build may be found in [the LUMI-training-materials archive](https://lumi-supercomputer.github.io/LUMI-training-materials/2day-20240502/09_Containers/#extending-the-container-with-the-singularity-unprivileged-proot-build). More details about building containers in general for LUMI may be found in the [LUMI Docs containers section](https://docs.lumi-supercomputer.eu/software/containers/singularity/).
@@ -56,7 +54,7 @@ In order to scale the training to multiple GCDs in a single node on LUMI, the Py
 > To workaround a problem with the accessing a single MIOpen SQLite database (used by ROCm) on the Lustre file systems from multiple nodes, one must (at least in this example) set the environment variables `MIOPEN_USER_DB_PATH` and `MIOPEN_CUSTOM_CACHE_DIR` to a node local location, e.g. a folder in /tmp.
 
 > [!NOTE]
-> The PyTorch (GPU) device is automatically chosen based on the ROCR_VISIBLE_DEVICES environment variable if not explicitly defined in the Python code, e.g. via `torch.device()`. Ideally, SLURM should be able to correctly set ROCR_VISIBLE_DEVICES for each rank if requesting a single GPU per rank. However, as of 20240524, this is not the case on LUMI since GPUs are constrained using cgroups. See <https://bugs.schedmd.com/show_bug.cgi?id=17875> for more details. Consequently, we need to manually set `ROCR_VISIBLE_DEVICES=\$SLURM_LOCALID` just before running our Python training script when using the **SLURM environment setup** approach.
+> The PyTorch (GPU) device is automatically chosen based on the ROCR_VISIBLE_DEVICES environment variable if not explicitly defined in the Python code, e.g. via `torch.device()`. Ideally, SLURM should be able to correctly  set ROCR_VISIBLE_DEVICES for each rank if requesting a single GPU per rank. However, as of 20240524, this is not the case on LUMI since GPUs are constrained using cgroups. See <https://bugs.schedmd.com/show_bug.cgi?id=17875> for more details. Consequently, we need to manually set `ROCR_VISIBLE_DEVICES=\$SLURM_LOCALID` just before running our Python training script when using the **SLURM environment setup** approach.
 
 ## 5. Scale to multiple nodes
 
